@@ -34,7 +34,7 @@ func menu() {
 // fungsi login
 
 // pasien posting pertanyaan
-
+//contoh tambah
 //
 
 func main() {
