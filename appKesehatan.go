@@ -22,20 +22,23 @@ type UserData struct {
 	id       int
 }
 
-type Pertanyaan struct {
-	author User
-	id     int
-	tag    [5]string //max 5 tag
+type Tanggapan struct {
+	author UserData
 	konten string
 }
 
-type Tanggapan struct {
-	author User
-	konten string
+type Pertanyaan struct {
+	author       UserData
+	id           int
+	tag          [5]string //max 5 tag
+	konten       string
+	tabTanggapan [NMAX]Tanggapan
+	tanggapanLen int
 }
 
 type Forum struct {
 	tabPertanyaan [NMAX]Pertanyaan
+	pertanyaanLen int
 }
 
 func guestMenu(users UserType) {
@@ -43,9 +46,8 @@ func guestMenu(users UserType) {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Println("1. Daftar")
 		fmt.Println("2. Masuk")
-		fmt.Println("3. Keluar")
-		fmt.Println("4. Lihat Forum")
-		fmt.Println("00. debug")
+		fmt.Println("3. Lihat Forum")
+		fmt.Println("00. Keluar")
 	}
 
 	opsiMenu()
@@ -67,15 +69,10 @@ func guestMenu(users UserType) {
 				pasienMenu(users, userData)
 			}
 		} else if opsi == 3 {
+			lihatForum()
+		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			return
-		} else if opsi == 4 {
-			// tampilkan forum
-			// jumlah balasan
-			// lihat isi pertanyaan berdasarkan id
-			// tampilkan tipe penjawab (dokter/pasien)
-		} else if opsi == 00 {
-			debugUser(users)
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
@@ -178,9 +175,11 @@ func loginUser(users UserType) UserData {
 	return result
 }
 
-// func lihatForum() {
-
-// }
+func lihatForum() {
+	// jumlah balasan
+	// lihat isi pertanyaan berdasarkan id
+	// tampilkan tipe penjawab (dokter/pasien)
+}
 
 // func cariTag() {
 
@@ -206,7 +205,7 @@ func pasienMenu(users UserType, data UserData) {
 		fmt.Printf("Halo, %s\n", users.Pasien[id].nama)
 		fmt.Println("1. Ajukan Pertanyaan")
 		fmt.Println("2. Lihat Forum")
-		fmt.Println("3. Keluar")
+		fmt.Println("00. Keluar")
 	}
 
 	opsiMenu()
@@ -220,7 +219,7 @@ func pasienMenu(users UserType, data UserData) {
 			// postPertanyaan()
 		} else if opsi == 2 {
 			// lihatForum()
-		} else if opsi == 3 {
+		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			guestMenu(users)
 		} else {
@@ -230,22 +229,50 @@ func pasienMenu(users UserType, data UserData) {
 }
 
 func dokterMenu(users UserType, data UserData) {
+	var id int = data.id
 
+	opsiMenu := func() {
+		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
+		fmt.Printf("Halo, %s\n", users.Dokter[id].nama)
+		// fmt.Printf("Notifikasi: %d pertanyaan belum dijawab\n", )
+		fmt.Println("1. Lihat Topik Populer")
+		fmt.Println("2. Lihat Forum")
+		fmt.Println("00. Keluar")
+	}
+
+	opsiMenu()
+
+	for {
+		var opsi int
+		fmt.Print("\nPilihan Anda: ")
+		fmt.Scan(&opsi)
+
+		if opsi == 1 {
+			// lihatTagAtas()
+		} else if opsi == 2 {
+			// lihatForum()
+		} else if opsi == 00 {
+			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
+			guestMenu(users)
+		} else {
+			fmt.Println("Pilihan tidak valid.")
+		}
+	}
 }
 
-func debugUser(users UserType) {
-	fmt.Println("Dokter list")
-	for i := 0; i < users.dokterLen; i++ {
-		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Dokter[i].nama, users.Dokter[i].username, users.Dokter[i].password)
-	}
-	fmt.Println(users.dokterLen)
+// func debugUser(users UserType) {
+// 	fmt.Println("Dokter list")
+// 	for i := 0; i < users.dokterLen; i++ {
+// 		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Dokter[i].nama, users.Dokter[i].username, users.Dokter[i].password)
+// 	}
+// 	fmt.Println(users.dokterLen)
 
-	fmt.Println("Pasien list")
-	for j := 0; j < users.pasienLen; j++ {
-		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Pasien[j].nama, users.Pasien[j].username, users.Pasien[j].password)
-	}
-	fmt.Println(users.pasienLen)
-}
+// 	fmt.Println("Pasien list")
+// 	for j := 0; j < users.pasienLen; j++ {
+// 		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Pasien[j].nama, users.Pasien[j].username, users.Pasien[j].password)
+// 	}
+// 	fmt.Println(users.pasienLen)
+// }
 
 func main() {
 	var users UserType
