@@ -17,6 +17,11 @@ type UserType struct {
 	pasienLen, dokterLen int
 }
 
+type UserData struct {
+	isDokter bool
+	id       int
+}
+
 type Pertanyaan struct {
 	author User
 	id     int
@@ -54,7 +59,13 @@ func guestMenu(users UserType) {
 			registerUser(&users)
 			opsiMenu()
 		} else if opsi == 2 {
-			loginUser(users)
+			userData := loginUser(users)
+
+			if userData.isDokter {
+				dokterMenu(users, userData)
+			} else {
+				pasienMenu(users, userData)
+			}
 		} else if opsi == 3 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			return
@@ -103,8 +114,10 @@ func registerUser(users *UserType) {
 		if users.Dokter[i].username == username || users.Pasien[i].username == username {
 			fmt.Printf("\nUsername %s telah terdaftar. Ulangi proses pendaftaran!\n", username)
 			hasUsername = true
+			i = 0
 			inputUser()
 		}
+		i++
 	}
 
 	if !hasUsername {
@@ -127,11 +140,11 @@ func registerUser(users *UserType) {
 	}
 }
 
-func loginUser(users UserType) {
+func loginUser(users UserType) UserData {
 	var username, password string
 	var n int = maxLen(users)
 	var found int = 0
-	var isDokter bool
+	var result UserData
 
 	inputUser := func() {
 		fmt.Print("Masukkan username: ")
@@ -142,26 +155,27 @@ func loginUser(users UserType) {
 
 	inputUser()
 
-	i := 0
-	for i < n && found > 0 {
-		if users.Dokter[i].username == username && users.Dokter[i].password == password {
-			isDokter = true
-			found++
+	for found == 0 {
+		for i := 0; i < n && found == 0; i++ {
+			if (users.Dokter[i].username == username) && (users.Dokter[i].password == password) {
+				result.isDokter = true
+				result.id = i
+				found++
+			}
+			if (users.Pasien[i].username == username) && (users.Pasien[i].password == password) {
+				result.isDokter = false
+				result.id = i
+				found++
+			}
 		}
-		if users.Pasien[i].username == username && users.Pasien[i].password == password {
-			isDokter = false
-			found++
-		}
+
 		if found == 0 {
 			fmt.Println("Username atau password tidak valid")
 			inputUser()
 		}
 	}
-	if isDokter == true {
-		fmt.Println("login dokter")
-	} else {
-		fmt.Println("login pasien")
-	}
+
+	return result
 }
 
 // func lihatForum() {
@@ -184,13 +198,40 @@ func loginUser(users UserType) {
 
 // }
 
-// func pasienMenu() {
+func pasienMenu(users UserType, data UserData) {
+	var id int = data.id
 
-// }
+	opsiMenu := func() {
+		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
+		fmt.Printf("Halo, %s\n", users.Pasien[id].nama)
+		fmt.Println("1. Ajukan Pertanyaan")
+		fmt.Println("2. Lihat Forum")
+		fmt.Println("3. Keluar")
+	}
 
-// func dokterMenu() {
+	opsiMenu()
 
-// }
+	for {
+		var opsi int
+		fmt.Print("\nPilihan Anda: ")
+		fmt.Scan(&opsi)
+
+		if opsi == 1 {
+			// postPertanyaan()
+		} else if opsi == 2 {
+			// lihatForum()
+		} else if opsi == 3 {
+			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
+			guestMenu(users)
+		} else {
+			fmt.Println("Pilihan tidak valid.")
+		}
+	}
+}
+
+func dokterMenu(users UserType, data UserData) {
+
+}
 
 func debugUser(users UserType) {
 	fmt.Println("Dokter list")
