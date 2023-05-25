@@ -12,9 +12,8 @@ type User struct {
 }
 
 type UserType struct {
-	Pasien [NMAX]User
-	Dokter [NMAX]User
-
+	Pasien               [NMAX]User
+	Dokter               [NMAX]User
 	pasienLen, dokterLen int
 }
 
@@ -35,9 +34,7 @@ func guestMenu(users UserType) {
 		fmt.Println("1. Daftar")
 		fmt.Println("2. Masuk")
 		fmt.Println("3. Keluar")
-		fmt.Println("4. Lihat Pertanyaan")
-		fmt.Println("5. Cari Pertanyaan berdasarkan Tag")
-		fmt.Println("6. Tampilkan Topik/Tag Terurut")
+		fmt.Println("4. Lihat Forum")
 		fmt.Println("00. debug")
 	}
 
@@ -52,16 +49,15 @@ func guestMenu(users UserType) {
 			daftarUser(&users)
 			opsiMenu()
 		} else if opsi == 2 {
-			// fungsi login
+			// login if dokter/pasien
 		} else if opsi == 3 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			return
 		} else if opsi == 4 {
-			// tampilkan pertanyaan
-		} else if opsi == 5 {
-			// cari pertanyaan tag
-		} else if opsi == 6 {
-			// tampilkan tag terurut
+			// tampilkan forum
+			// jumlah balasan
+			// lihat isi pertanyaan berdasarkan id
+			// tampilkan tipe penjawab (dokter/pasien)
 		} else if opsi == 00 {
 			debugUser(users)
 		} else {
@@ -104,6 +100,38 @@ func daftarUser(users *UserType) {
 	fmt.Println("\nPendaftaran berhasil!")
 }
 
+func loginUser() {
+
+}
+
+func lihatForum() {
+
+}
+
+func cariTag() {
+
+}
+
+func lihatTagAtas() {
+
+}
+
+func postPertanyaan() {
+
+}
+
+func postJawabn() {
+
+}
+
+func pasienMenu() {
+
+}
+
+func dokterMenu() {
+
+}
+
 func debugUser(users UserType) {
 	fmt.Println("Dokter list")
 	for i := 0; i < users.dokterLen; i++ {
@@ -117,7 +145,5 @@ func debugUser(users UserType) {
 
 func main() {
 	var users UserType
-	// var nTanya int
-
 	guestMenu(users)
 }
