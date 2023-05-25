@@ -216,13 +216,51 @@ func cariTag(users UserType, forums Forum) {
 	}
 }
 
-// func lihatTagAtas() {
+func lihatTagAtas(forums Forum) {
+	tags := make(map[string]int)
 
-// }
+	for i := 0; i < forums.pertanyaanLen; i++ {
+		pertanyaan := forums.tabPertanyaan[i]
 
-// func postPertanyaan() {
+		for _, tag := range pertanyaan.tag {
+			if tag != "" {
+				tags[tag]++
+			}
+		}
+	}
 
-// }
+	fmt.Println("\n=== Tag Populer ===")
+	fmt.Println("Tag\tJumlah Pertanyaan")
+
+	for tag, count := range tags {
+		fmt.Printf("%s\t%d\n", tag, count)
+	}
+}
+
+func postPertanyaan(users *UserType, forums *Forum, data UserData) {
+	var pertanyaan string
+	var tags [5]string
+
+	fmt.Print("Masukkan pertanyaan Anda: ")
+	fmt.Scan(&pertanyaan)
+
+	for i := 0; i < 5; i++ {
+		fmt.Printf("Masukkan tag #%d: ", i+1)
+		fmt.Scan(&tags[i])
+	}
+
+	author := data.id
+	id := forums.pertanyaanLen
+
+	forums.tabPertanyaan[id].author.id = author
+	forums.tabPertanyaan[id].id = id
+	forums.tabPertanyaan[id].tag = tags
+	forums.tabPertanyaan[id].konten = pertanyaan
+	forums.pertanyaanLen++
+
+	fmt.Println("Pertanyaan berhasil diposting!")
+}
+
 
 // func postJawaban() {
 
