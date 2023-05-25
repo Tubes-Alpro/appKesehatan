@@ -9,8 +9,6 @@ const NMAX int = 1000
 
 type User struct {
 	nama, username, password string
-	Pertanyaan   [NMAX]Pertanyaan
-	PertanyaanLen int
 }
 
 type UserType struct {
@@ -71,7 +69,8 @@ func guestMenu(users UserType, forums Forum) {
 				pasienMenu(users, userData, forums)
 			}
 		} else if opsi == 3 {
-			lihatForum()
+			// lihatForum()
+			cariTag(users, forums)
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			return
@@ -183,7 +182,7 @@ func lihatForum() {
 	// tampilkan tipe penjawab (dokter/pasien)
 }
 
-func cariTag(users UserType) {
+func cariTag(users UserType, forums Forum) {
 	var tag string
 	fmt.Print("\nMasukkan tag yang ingin dicari: ")
 	fmt.Scan(&tag)
@@ -191,23 +190,22 @@ func cariTag(users UserType) {
 	fmt.Println("\n=== Hasil Pencarian ===")
 	found := false
 
-	for i := 0; i < users.pasienLen; i++ {
-		for j := 0; j < users.Pasien[i].PertanyaanLen; j++ {
-			pertanyaan := users.Pasien[i].Pertanyaan[j]
-			for _, t := range pertanyaan.tag {
-				if strings.Contains(t, tag) {
-					if !found {
-						found = true
-					}
-					fmt.Printf("\nID Pertanyaan: %d\n", pertanyaan.id)
-					fmt.Printf("Pertanyaan dari: %s\n", users.Pasien[i].nama)
-					fmt.Printf("Isi Pertanyaan: %s\n", pertanyaan.konten)
-					fmt.Printf("Jumlah Tanggapan: %d\n", pertanyaan.tanggapanLen)
-					for k := 0; k < pertanyaan.tanggapanLen; k++ {
-						tanggapan := pertanyaan.tabTanggapan[k]
-						fmt.Printf("- Tanggapan dari: %s\n", users.Dokter[tanggapan.author.id].nama)
-						fmt.Printf("  Konten Tanggapan: %s\n", tanggapan.konten)
-					}
+	for j := 0; j < forums.pertanyaanLen; j++ {
+		pertanyaan := forums.tabPertanyaan[j]
+		for _, t := range pertanyaan.tag {
+			if t != "" && strings.Contains(t, tag) {
+				if !found {
+					found = true
+				}
+				author := pertanyaan.author.id
+				fmt.Printf("\nID Pertanyaan: %d\n", pertanyaan.id)
+				fmt.Printf("Pertanyaan dari: %s\n", users.Pasien[author].nama)
+				fmt.Printf("Isi Pertanyaan: %s\n", pertanyaan.konten)
+				fmt.Printf("Jumlah Tanggapan: %d\n", pertanyaan.tanggapanLen)
+				for k := 0; k < pertanyaan.tanggapanLen; k++ {
+					tanggapan := pertanyaan.tabTanggapan[k]
+					fmt.Printf("- Tanggapan dari: %s\n", users.Dokter[tanggapan.author.id].nama)
+					fmt.Printf("  Konten Tanggapan: %s\n", tanggapan.konten)
 				}
 			}
 		}
@@ -310,5 +308,17 @@ func dokterMenu(users UserType, data UserData, forums Forum) {
 func main() {
 	var users UserType
 	var forums Forum
+
+	// Dummy data
+	users.Pasien[0].nama = "Jon"
+	users.Pasien[0].username = "jon123"
+	users.Pasien[0].password = "123"
+
+	forums.tabPertanyaan[0].author.id = 0
+	forums.tabPertanyaan[0].id = 0
+	forums.tabPertanyaan[0].tag = [5]string{"kehamilan", "alergi", "bayi"}
+	forums.tabPertanyaan[0].konten = "Ini pertanyaan?"
+	forums.pertanyaanLen++
+
 	guestMenu(users, forums)
 }
