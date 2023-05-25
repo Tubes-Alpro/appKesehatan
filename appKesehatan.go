@@ -41,7 +41,7 @@ type Forum struct {
 	pertanyaanLen int
 }
 
-func guestMenu(users UserType) {
+func guestMenu(users UserType, forums Forum) {
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Println("1. Daftar")
@@ -64,9 +64,9 @@ func guestMenu(users UserType) {
 			userData := loginUser(users)
 
 			if userData.isDokter {
-				dokterMenu(users, userData)
+				dokterMenu(users, userData, forums)
 			} else {
-				pasienMenu(users, userData)
+				pasienMenu(users, userData, forums)
 			}
 		} else if opsi == 3 {
 			lihatForum()
@@ -197,12 +197,12 @@ func lihatForum() {
 
 // }
 
-func pasienMenu(users UserType, data UserData) {
+func pasienMenu(users UserType, data UserData, forums Forum) {
 	var id int = data.id
 
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
-		fmt.Printf("Halo, %s\n", users.Pasien[id].nama)
+		fmt.Printf("Halo, %s (pasien)\n", users.Pasien[id].nama)
 		fmt.Println("1. Ajukan Pertanyaan")
 		fmt.Println("2. Lihat Forum")
 		fmt.Println("00. Keluar")
@@ -221,19 +221,19 @@ func pasienMenu(users UserType, data UserData) {
 			// lihatForum()
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
-			guestMenu(users)
+			guestMenu(users, forums)
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
 	}
 }
 
-func dokterMenu(users UserType, data UserData) {
+func dokterMenu(users UserType, data UserData, forums Forum) {
 	var id int = data.id
 
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
-		fmt.Printf("Halo, %s\n", users.Dokter[id].nama)
+		fmt.Printf("Halo, %s (dokter)\n", users.Dokter[id].nama)
 		// fmt.Printf("Notifikasi: %d pertanyaan belum dijawab\n", )
 		fmt.Println("1. Lihat Topik Populer")
 		fmt.Println("2. Lihat Forum")
@@ -253,7 +253,7 @@ func dokterMenu(users UserType, data UserData) {
 			// lihatForum()
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
-			guestMenu(users)
+			guestMenu(users, forums)
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
@@ -276,5 +276,6 @@ func dokterMenu(users UserType, data UserData) {
 
 func main() {
 	var users UserType
-	guestMenu(users)
+	var forums Forum
+	guestMenu(users, forums)
 }
