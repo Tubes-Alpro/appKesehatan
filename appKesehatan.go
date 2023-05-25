@@ -9,6 +9,8 @@ const NMAX int = 1000
 
 type User struct {
 	nama, username, password string
+	Pertanyaan   [NMAX]Pertanyaan
+	PertanyaanLen int
 }
 
 type UserType struct {
@@ -181,9 +183,40 @@ func lihatForum() {
 	// tampilkan tipe penjawab (dokter/pasien)
 }
 
-// func cariTag() {
+func cariTag(users UserType) {
+	var tag string
+	fmt.Print("\nMasukkan tag yang ingin dicari: ")
+	fmt.Scan(&tag)
 
-// }
+	fmt.Println("\n=== Hasil Pencarian ===")
+	found := false
+
+	for i := 0; i < users.pasienLen; i++ {
+		for j := 0; j < users.Pasien[i].PertanyaanLen; j++ {
+			pertanyaan := users.Pasien[i].Pertanyaan[j]
+			for _, t := range pertanyaan.tag {
+				if strings.Contains(t, tag) {
+					if !found {
+						found = true
+					}
+					fmt.Printf("\nID Pertanyaan: %d\n", pertanyaan.id)
+					fmt.Printf("Pertanyaan dari: %s\n", users.Pasien[i].nama)
+					fmt.Printf("Isi Pertanyaan: %s\n", pertanyaan.konten)
+					fmt.Printf("Jumlah Tanggapan: %d\n", pertanyaan.tanggapanLen)
+					for k := 0; k < pertanyaan.tanggapanLen; k++ {
+						tanggapan := pertanyaan.tabTanggapan[k]
+						fmt.Printf("- Tanggapan dari: %s\n", users.Dokter[tanggapan.author.id].nama)
+						fmt.Printf("  Konten Tanggapan: %s\n", tanggapan.konten)
+					}
+				}
+			}
+		}
+	}
+
+	if !found {
+		fmt.Println("Tidak ditemukan pertanyaan dengan tag tersebut.")
+	}
+}
 
 // func lihatTagAtas() {
 
