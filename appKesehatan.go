@@ -1,42 +1,123 @@
 package main
 
+import (
+	"fmt"
+	"strings"
+)
+
 const NMAX int = 1000
 
 type User struct {
 	nama, username, password string
 }
 
-var pasien [NMAX]User
-var dokter [NMAX]User
+type UserType struct {
+	Pasien [NMAX]User
+	Dokter [NMAX]User
+
+	pasienLen, dokterLen int
+}
 
 type Pertanyaan struct {
-	id      int
-	tag     string
-	kontent string
+	author User
+	id     int
+	tag    [5]string //max 5 tag
+	konten string
 }
 
-type Tanggapan struct {
-	konten  string
-	penulis User
+type Forum struct {
+	tabPertanyaan [NMAX]Pertanyaan
 }
 
-// menu
-func menu() {
+func guestMenu(users UserType) {
+	opsiMenu := func() {
+		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
+		fmt.Println("1. Daftar")
+		fmt.Println("2. Masuk")
+		fmt.Println("3. Keluar")
+		fmt.Println("4. Lihat Pertanyaan")
+		fmt.Println("5. Cari Pertanyaan berdasarkan Tag")
+		fmt.Println("6. Tampilkan Topik/Tag Terurut")
+		fmt.Println("00. debug")
+	}
 
+	opsiMenu()
+
+	for {
+		var opsi int
+		fmt.Print("\nPilihan Anda: ")
+		fmt.Scan(&opsi)
+
+		if opsi == 1 {
+			daftarUser(&users)
+			opsiMenu()
+		} else if opsi == 2 {
+			// fungsi login
+		} else if opsi == 3 {
+			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
+			return
+		} else if opsi == 4 {
+			// tampilkan pertanyaan
+		} else if opsi == 5 {
+			// cari pertanyaan tag
+		} else if opsi == 6 {
+			// tampilkan tag terurut
+		} else if opsi == 00 {
+			debugUser(users)
+		} else {
+			fmt.Println("Pilihan tidak valid.")
+		}
+	}
 }
 
-// fungsi registrasi pasien
+func daftarUser(users *UserType) {
+	var nama, username, password string
+	var isDokter string
+	var n int
 
-// fungsi login
+	fmt.Print("Masukkan nama: ")
+	fmt.Scan(&nama)
+	fmt.Print("Masukkan username: ")
+	fmt.Scan(&username)
+	fmt.Print("Masukkan password: ")
+	fmt.Scan(&password)
 
-// fungsi registrasi dokter
+	fmt.Print("Apakah Anda seorang dokter? (y/n): ")
+	fmt.Scan(&isDokter)
 
-// fungsi login
+	if strings.ToLower(isDokter) == "y" {
+		n = users.dokterLen
 
-// pasien posting pertanyaan
-//contoh tambah
-// test tstests atsts ses
+		users.Dokter[n].nama = nama
+		users.Dokter[n].username = username
+		users.Dokter[n].password = password
+		users.dokterLen++
+	} else {
+		n = users.pasienLen
+
+		users.Pasien[n].nama = nama
+		users.Pasien[n].username = username
+		users.Pasien[n].password = password
+		users.pasienLen++
+	}
+
+	fmt.Println("\nPendaftaran berhasil!")
+}
+
+func debugUser(users UserType) {
+	fmt.Println("Dokter list")
+	for i := 0; i < users.dokterLen; i++ {
+		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Dokter[i].nama, users.Dokter[i].username, users.Dokter[i].password)
+	}
+	fmt.Println("Pasien list")
+	for j := 0; j < users.pasienLen; j++ {
+		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Pasien[j].nama, users.Pasien[j].username, users.Pasien[j].password)
+	}
+}
 
 func main() {
+	var users UserType
+	// var nTanya int
 
+	guestMenu(users)
 }
