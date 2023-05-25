@@ -262,9 +262,21 @@ func postPertanyaan(users *UserType, forums *Forum, data UserData) {
 }
 
 
-// func postJawaban() {
+func postJawaban(users *UserType, forums *Forum, data UserData, idPertanyaan int) {
+	var jawaban string
 
-// }
+	fmt.Print("Masukkan jawaban Anda: ")
+	fmt.Scan(&jawaban)
+
+	id := forums.tabPertanyaan[idPertanyaan].tanggapanLen
+	author := data.id
+
+	forums.tabPertanyaan[idPertanyaan].tabTanggapan[id].author.id = author
+	forums.tabPertanyaan[idPertanyaan].tabTanggapan[id].konten = jawaban
+	forums.tabPertanyaan[idPertanyaan].tanggapanLen++
+
+	fmt.Println("Jawaban berhasil diposting!")
+}
 
 func pasienMenu(users UserType, data UserData, forums Forum) {
 	var id int = data.id
