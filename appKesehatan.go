@@ -42,9 +42,13 @@ type Pertanyaan struct {
 type Forum struct {
 	tabPertanyaan [NMAX]Pertanyaan
 	pertanyaanLen int
+	tags          [NMAX]string
+	tagsLen       int
 }
 
-func guestMenu(users UserType, forums Forum) {
+func mainMenu(users UserType, forums Forum) {
+	var opsi int
+	var session string
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Println("1. Daftar")
@@ -54,23 +58,22 @@ func guestMenu(users UserType, forums Forum) {
 		fmt.Println("33. debug user")
 	}
 
-	opsiMenu()
-
 	for {
-		var opsi int
+		opsiMenu()
 		fmt.Print("\nPilihan Anda: ")
 		fmt.Scan(&opsi)
 
 		if opsi == 1 {
 			registerUser(&users, forums)
-			opsiMenu()
 		} else if opsi == 2 {
 			userData := loginUser(users, forums)
 
 			if userData.isDokter {
-				dokterMenu(users, userData, forums)
+				session = "dokter"
+				dokterMenu(users, userData, forums, session)
 			} else {
-				pasienMenu(users, userData, forums)
+				session = "pasien"
+				pasienMenu(users, userData, forums, session)
 			}
 		} else if opsi == 3 {
 			session := "guest"
@@ -78,7 +81,7 @@ func guestMenu(users UserType, forums Forum) {
 			lihatForum(users, data, forums, session)
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
-			return
+			os.Exit(0)
 		} else if opsi == 33 {
 			debugUser(users)
 		} else {
@@ -115,7 +118,7 @@ func registerUser(users *UserType, forums Forum) {
 		fmt.Print("\nDaftar? (y/n): ")
 		fmt.Scan(&input)
 		if input == "n" {
-			guestMenu(*users, forums)
+			mainMenu(*users, forums)
 		}
 	}
 
@@ -170,7 +173,7 @@ func loginUser(users UserType, forums Forum) UserData {
 		fmt.Print("\nLogin? (y/n): ")
 		fmt.Scan(&input)
 		if input == "n" {
-			guestMenu(users, forums)
+			mainMenu(users, forums)
 		}
 	}
 
@@ -202,28 +205,32 @@ func loginUser(users UserType, forums Forum) UserData {
 func lihatForum(users UserType, data UserData, forums Forum, session string) {
 	var opsi int
 	var id int
-	fmt.Println("\n=== Forum Konsultasi ===")
+	forumList := func() {
+		fmt.Println("\n=== Forum Konsultasi ===")
 
-	for j := 0; j < forums.pertanyaanLen; j++ {
-		pertanyaan := forums.tabPertanyaan[j]
-		author := pertanyaan.author.id
-		fmt.Printf("\nID: %d\t", pertanyaan.id)
-		fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
-		fmt.Printf("Tag: %s\n", pertanyaan.tag)
-		fmt.Printf("Pertanyaan: %s\n", pertanyaan.konten)
-		fmt.Printf("Tanggapan: %d\n", pertanyaan.tanggapanLen)
-		for k := 0; k < pertanyaan.tanggapanLen; k++ {
-			tanggapan := pertanyaan.tabTanggapan[k]
-			if tanggapan.author.isDokter {
-				fmt.Printf("- %s (dokter): %s\n", users.Dokter[tanggapan.author.id].nama, tanggapan.konten)
-			} else {
-				fmt.Printf("- %s (pasien): %s\n", users.Pasien[tanggapan.author.id].nama, tanggapan.konten)
+		for j := 0; j < forums.pertanyaanLen; j++ {
+			pertanyaan := forums.tabPertanyaan[j]
+			author := pertanyaan.author.id
+			fmt.Printf("\nID: %d\t", pertanyaan.id)
+			fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
+			fmt.Printf("Tag: %s\n", pertanyaan.tag)
+			fmt.Printf("Pertanyaan: %s\n", pertanyaan.konten)
+			fmt.Printf("Tanggapan: %d\n", pertanyaan.tanggapanLen)
+			for k := 0; k < pertanyaan.tanggapanLen; k++ {
+				tanggapan := pertanyaan.tabTanggapan[k]
+				if tanggapan.author.isDokter {
+					fmt.Printf("- %s (dokter): %s\n", users.Dokter[tanggapan.author.id].nama, tanggapan.konten)
+				} else {
+					fmt.Printf("- %s (pasien): %s\n", users.Pasien[tanggapan.author.id].nama, tanggapan.konten)
+				}
 			}
+			fmt.Print("------------------------")
 		}
-		fmt.Print("------------------------")
+
+		fmt.Println("\n=== Menu ===")
 	}
 
-	fmt.Println("\n=== Menu ===")
+	forumList()
 
 	if session == "guest" {
 		for {
@@ -232,7 +239,7 @@ func lihatForum(users UserType, data UserData, forums Forum, session string) {
 			fmt.Scan(&opsi)
 
 			if opsi == 0 {
-				guestMenu(users, forums)
+				return
 			} else {
 				fmt.Println("Pilihan tidak valid.")
 			}
@@ -252,8 +259,9 @@ func lihatForum(users UserType, data UserData, forums Forum, session string) {
 				fmt.Print("Masukkan ID Pertanyaan: ")
 				fmt.Scan(&id)
 				postJawaban(users, &forums, data, id, session)
+				forumList()
 			} else if opsi == 0 {
-				pasienMenu(users, data, forums)
+				return
 			} else {
 				fmt.Println("Pilihan tidak valid.")
 			}
@@ -270,8 +278,9 @@ func lihatForum(users UserType, data UserData, forums Forum, session string) {
 				fmt.Print("Masukkan ID Pertanyaan: ")
 				fmt.Scan(&id)
 				postJawaban(users, &forums, data, id, session)
+				forumList()
 			} else if opsi == 0 {
-				dokterMenu(users, data, forums)
+				return
 			} else {
 				fmt.Println("Pilihan tidak valid.")
 			}
@@ -279,23 +288,13 @@ func lihatForum(users UserType, data UserData, forums Forum, session string) {
 	}
 }
 
-func cariTag(users UserType, data UserData, forums Forum, session string) {
-	var tag string
+func filterPertanyaan(users UserType, data UserData, forums Forum, session string) {
 	var opsi int
-	var id int
 
-	fmt.Print("\nMasukkan tag yang ingin dicari: ")
-	fmt.Scan(&tag)
-
-	fmt.Println("\n=== Hasil Pencarian ===")
-	found := false
-
+	fmt.Println("\n=== Pertanyaan Saya ===")
 	for j := 0; j < forums.pertanyaanLen; j++ {
 		pertanyaan := forums.tabPertanyaan[j]
-		if pertanyaan.tag == tag {
-			if !found {
-				found = true
-			}
+		if data.id == pertanyaan.author.id {
 			author := pertanyaan.author.id
 			fmt.Printf("\nID: %d\t", pertanyaan.id)
 			fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
@@ -310,14 +309,68 @@ func cariTag(users UserType, data UserData, forums Forum, session string) {
 					fmt.Printf("- %s (pasien): %s\n", users.Pasien[tanggapan.author.id].nama, tanggapan.konten)
 				}
 			}
+			fmt.Print("------------------------")
 		}
 	}
 
-	if !found {
-		fmt.Println("Tidak ditemukan pertanyaan dengan tag tersebut.")
+	fmt.Println("\n=== Menu ===")
+
+	for {
+		fmt.Println("0. Kembali")
+		fmt.Print("\nPilihan Anda: ")
+		fmt.Scan(&opsi)
+
+		if opsi == 0 {
+			return
+		} else {
+			fmt.Println("Pilihan tidak valid.")
+		}
+	}
+}
+
+func filterTag(users UserType, data UserData, forums Forum, session string) {
+	var tag string
+	var opsi int
+	var id int
+
+	fmt.Print("\nMasukkan tag yang ingin dicari: ")
+	fmt.Scan(&tag)
+
+	filter := func() {
+		fmt.Println("\n=== Hasil Pencarian ===")
+		found := false
+
+		for j := 0; j < forums.pertanyaanLen; j++ {
+			pertanyaan := forums.tabPertanyaan[j]
+			if pertanyaan.tag == tag {
+				if !found {
+					found = true
+				}
+				author := pertanyaan.author.id
+				fmt.Printf("\nID: %d\t", pertanyaan.id)
+				fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
+				fmt.Printf("Tag: %s\n", pertanyaan.tag)
+				fmt.Printf("Pertanyaan: %s\n", pertanyaan.konten)
+				fmt.Printf("Tanggapan: %d\n", pertanyaan.tanggapanLen)
+				for k := 0; k < pertanyaan.tanggapanLen; k++ {
+					tanggapan := pertanyaan.tabTanggapan[k]
+					if tanggapan.author.isDokter {
+						fmt.Printf("- %s (dokter): %s\n", users.Dokter[tanggapan.author.id].nama, tanggapan.konten)
+					} else {
+						fmt.Printf("- %s (pasien): %s\n", users.Pasien[tanggapan.author.id].nama, tanggapan.konten)
+					}
+				}
+			}
+		}
+
+		if !found {
+			fmt.Println("Tidak ditemukan pertanyaan dengan tag tersebut.")
+		}
+
+		fmt.Println("\n=== Menu ===")
 	}
 
-	fmt.Println("\n=== Menu ===")
+	filter()
 
 	if session == "pasien" {
 		for {
@@ -335,7 +388,7 @@ func cariTag(users UserType, data UserData, forums Forum, session string) {
 				fmt.Scan(&id)
 				postJawaban(users, &forums, data, id, session)
 			} else if opsi == 0 {
-				pasienMenu(users, data, forums)
+				return
 			} else {
 				fmt.Println("Pilihan tidak valid.")
 			}
@@ -352,8 +405,9 @@ func cariTag(users UserType, data UserData, forums Forum, session string) {
 				fmt.Print("Masukkan ID Pertanyaan: ")
 				fmt.Scan(&id)
 				postJawaban(users, &forums, data, id, session)
+				filter()
 			} else if opsi == 0 {
-				lihatTagAtas(users, forums, data, session)
+				return
 			} else {
 				fmt.Println("Pilihan tidak valid.")
 			}
@@ -362,22 +416,37 @@ func cariTag(users UserType, data UserData, forums Forum, session string) {
 }
 
 func lihatTagAtas(users UserType, forums Forum, data UserData, session string) {
-	tags := make(map[string]int)
+	var tags [NMAX]string
+	var tagCounts [NMAX]int
+	tagsLen := 0
 
 	for i := 0; i < forums.pertanyaanLen; i++ {
 		pertanyaan := forums.tabPertanyaan[i]
 
 		tag := pertanyaan.tag
 		if tag != "" {
-			tags[tag]++
+			found := false
+			j := 0
+			for j < tagsLen {
+				if tags[j] == tag {
+					tagCounts[j]++
+					found = true
+				}
+				j++
+			}
+			if !found && tagsLen < NMAX {
+				tags[tagsLen] = tag
+				tagCounts[tagsLen]++
+				tagsLen++
+			}
 		}
 	}
 
 	fmt.Println("\n=== Tag Populer ===")
 	fmt.Println("Tag\t\tJumlah Pertanyaan")
 
-	for tag, count := range tags {
-		fmt.Printf("%s\t\t%d\n", tag, count)
+	for j := 0; j < tagsLen; j++ {
+		fmt.Printf("%s\t\t%d\n", tags[j], tagCounts[j])
 	}
 
 	fmt.Println("\n=== Menu ===")
@@ -389,9 +458,9 @@ func lihatTagAtas(users UserType, forums Forum, data UserData, session string) {
 		fmt.Scan(&opsi)
 
 		if opsi == 1 {
-			cariTag(users, data, forums, session)
+			filterTag(users, data, forums, session)
 		} else if opsi == 0 {
-			dokterMenu(users, data, forums)
+			return
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
@@ -403,6 +472,7 @@ func postPertanyaan(users UserType, forums *Forum, data UserData) {
 	var tags string
 	var submit bool
 	var input string
+	const tagsLen int = 10
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -412,19 +482,16 @@ func postPertanyaan(users UserType, forums *Forum, data UserData) {
 		pertanyaan = strings.TrimSpace(pertanyaan)
 
 		fmt.Println("Pilih tag:")
-		tagsOpsi := [10]string{"diabetes", "flu", "insomnia", "jantung", "kanker", "mental", "pernapasan", "stroke", "virus", "lainnya"}
-		for i := 0; i < 10; i++ {
+		tagsOpsi := forums.tags
+		for i := 0; i < tagsLen; i++ {
 			fmt.Printf("#%d: %s  |  ", i+1, tagsOpsi[i])
-			if (i+1)%5 == 0 {
-				fmt.Println()
-			}
 		}
 		valid := false
 		var opsi int
 		for !valid {
 			fmt.Print("\nPilih tag (1-10): ")
 			fmt.Scanln(&opsi)
-			if opsi < 1 || opsi > 10 {
+			if opsi < 1 || opsi > tagsLen {
 				fmt.Println("Pilihan tag tidak valid")
 			} else {
 				valid = true
@@ -447,7 +514,6 @@ func postPertanyaan(users UserType, forums *Forum, data UserData) {
 	forums.pertanyaanLen++
 
 	fmt.Println("Pertanyaan berhasil diposting!")
-	lihatForum(users, data, *forums, "pasien")
 }
 
 func postJawaban(users UserType, forums *Forum, data UserData, idPertanyaan int, session string) {
@@ -478,7 +544,6 @@ func postJawaban(users UserType, forums *Forum, data UserData, idPertanyaan int,
 	tanggapan.tanggapanLen++
 
 	fmt.Println("Jawaban berhasil diposting!")
-	lihatForum(users, data, *forums, session)
 }
 
 func cekJawaban(forums Forum) int {
@@ -495,42 +560,42 @@ func cekJawaban(forums Forum) int {
 	return jumlahPertanyaanTanpaTanggapan 
 }
 
-
-func pasienMenu(users UserType, data UserData, forums Forum) {
+func pasienMenu(users UserType, data UserData, forums Forum, session string) {
 	var id int = data.id
 
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Printf("Halo, %s (pasien)\n", users.Pasien[id].nama)
 		fmt.Println("1. Ajukan Pertanyaan")
-		fmt.Println("2. Lihat Forum")
+		fmt.Println("2. Pertanyaan Saya")
+		fmt.Println("3. Lihat Forum")
 		fmt.Println("00. Keluar")
 	}
 
-	opsiMenu()
-
 	for {
 		var opsi int
+		opsiMenu()
 		fmt.Print("\nPilihan Anda: ")
 		fmt.Scan(&opsi)
 
 		if opsi == 1 {
 			postPertanyaan(users, &forums, data)
 		} else if opsi == 2 {
-			session := "pasien"
+			filterPertanyaan(users, data, forums, session)
+		} else if opsi == 3 {
 			lihatForum(users, data, forums, session)
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
-			guestMenu(users, forums)
+			return
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
 	}
 }
 
-func dokterMenu(users UserType, data UserData, forums Forum) {
+func dokterMenu(users UserType, data UserData, forums Forum, session string) {
 	var id int = data.id
-	session := "dokter"
+	var opsi int
 
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
@@ -541,10 +606,8 @@ func dokterMenu(users UserType, data UserData, forums Forum) {
 		fmt.Println("00. Keluar")
 	}
 
-	opsiMenu()
-
 	for {
-		var opsi int
+		opsiMenu()
 		fmt.Print("\nPilihan Anda: ")
 		fmt.Scan(&opsi)
 
@@ -554,7 +617,7 @@ func dokterMenu(users UserType, data UserData, forums Forum) {
 			lihatForum(users, data, forums, session)
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
-			guestMenu(users, forums)
+			return
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
@@ -562,17 +625,15 @@ func dokterMenu(users UserType, data UserData, forums Forum) {
 }
 
 func debugUser(users UserType) {
-	fmt.Println("Dokter list")
+	fmt.Printf("\nDokter list (%d)\n", users.dokterLen)
 	for i := 0; i < users.dokterLen; i++ {
-		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Dokter[i].nama, users.Dokter[i].username, users.Dokter[i].password)
+		fmt.Printf("- Nama: %s \tUsername: %s \tPass: %s\n", users.Dokter[i].nama, users.Dokter[i].username, users.Dokter[i].password)
 	}
-	fmt.Println(users.dokterLen)
 
-	fmt.Println("Pasien list")
+	fmt.Printf("Pasien list (%d)\n", users.pasienLen)
 	for j := 0; j < users.pasienLen; j++ {
-		fmt.Printf("Nama: %s \tUsername: %s \tPass: %s\n", users.Pasien[j].nama, users.Pasien[j].username, users.Pasien[j].password)
+		fmt.Printf("- Nama: %s \tUsername: %s \tPass: %s\n", users.Pasien[j].nama, users.Pasien[j].username, users.Pasien[j].password)
 	}
-	fmt.Println(users.pasienLen)
 }
 
 func dummy(users *UserType, forums *Forum) {
@@ -588,6 +649,14 @@ func dummy(users *UserType, forums *Forum) {
 		id:       1,
 		nama:     "Stefi",
 		username: "stef1",
+		password: "123",
+	}
+	users.pasienLen++
+
+	users.Pasien[2] = User{
+		id:       2,
+		nama:     "Red",
+		username: "redcode",
 		password: "123",
 	}
 	users.pasienLen++
@@ -633,6 +702,39 @@ func dummy(users *UserType, forums *Forum) {
 	}
 	forums.pertanyaanLen++
 
+	forums.tabPertanyaan[3] = Pertanyaan{
+		author: UserData{
+			id:       1,
+			isDokter: false,
+		},
+		id:     3,
+		tag:    "diabetes",
+		konten: "What are some common symptoms of diabetes?",
+	}
+	forums.pertanyaanLen++
+
+	forums.tabPertanyaan[4] = Pertanyaan{
+		author: UserData{
+			id:       1,
+			isDokter: false,
+		},
+		id:     4,
+		tag:    "kanker",
+		konten: "Are there any alternative treatments for cancer?",
+	}
+	forums.pertanyaanLen++
+
+	forums.tabPertanyaan[5] = Pertanyaan{
+		author: UserData{
+			id:       1,
+			isDokter: false,
+		},
+		id:     5,
+		tag:    "jantung",
+		konten: "What are some ways to prevent heart disease?",
+	}
+	forums.pertanyaanLen++
+
 	forums.tabPertanyaan[0].tabTanggapan[0] = Tanggapan{
 		author: UserData{
 			id:       1,
@@ -652,11 +754,21 @@ func dummy(users *UserType, forums *Forum) {
 	forums.tabPertanyaan[1].tanggapanLen++
 }
 
+func addTags(forums *Forum) {
+	const tagsLen int = 10
+
+	tags := [tagsLen]string{"diabetes", "flu", "insomnia", "jantung", "kanker", "mental", "pernapasan", "stroke", "virus", "lainnya"}
+
+	for i := 0; i < tagsLen; i++ {
+		forums.tags[i] = tags[i]
+	}
+}
+
 func main() {
 	var users UserType
 	var forums Forum
 
 	dummy(&users, &forums)
-
-	guestMenu(users, forums)
+	addTags(&forums)
+	mainMenu(users, forums)
 }
