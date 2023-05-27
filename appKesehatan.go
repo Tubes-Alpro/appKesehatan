@@ -481,9 +481,20 @@ func postJawaban(users UserType, forums *Forum, data UserData, idPertanyaan int,
 	lihatForum(users, data, *forums, session)
 }
 
-// func cekJawaban(forums Forum) int {
+func cekJawaban(forums Forum) int {
+	count := 0
 
-// }
+	for i := 0; i < forums.pertanyaanLen; i++ {
+		pertanyaan := forums.tabPertanyaan[i]
+
+		if pertanyaan.tanggapanLen == 0 {
+			count++
+		}
+	}
+
+	return count
+}
+
 
 func pasienMenu(users UserType, data UserData, forums Forum) {
 	var id int = data.id
@@ -524,7 +535,7 @@ func dokterMenu(users UserType, data UserData, forums Forum) {
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Printf("Halo, %s (dokter)\n", users.Dokter[id].nama)
-		// fmt.Printf("Notifikasi: %d pertanyaan belum dijawab\n", )
+		fmt.Printf("Notifikasi: %d pertanyaan belum dijawab\n", cekJawaban(forums))
 		fmt.Println("1. Lihat Topik Populer")
 		fmt.Println("2. Lihat Forum")
 		fmt.Println("00. Keluar")
