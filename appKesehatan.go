@@ -290,11 +290,13 @@ func lihatForum(users UserType, data UserData, forums Forum, session string) {
 
 func filterPertanyaan(users UserType, data UserData, forums Forum, session string) {
 	var opsi int
+	var count int = 0
 
 	fmt.Println("\n=== Pertanyaan Saya ===")
 	for j := 0; j < forums.pertanyaanLen; j++ {
 		pertanyaan := forums.tabPertanyaan[j]
 		if data.id == pertanyaan.author.id {
+			count++
 			author := pertanyaan.author.id
 			fmt.Printf("\nID: %d\t", pertanyaan.id)
 			fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
@@ -311,6 +313,9 @@ func filterPertanyaan(users UserType, data UserData, forums Forum, session strin
 			}
 			fmt.Print("------------------------")
 		}
+	}
+	if count == 0 {
+		fmt.Println("Anda belum mengajukan pertanyaan")
 	}
 
 	fmt.Println("\n=== Menu ===")
