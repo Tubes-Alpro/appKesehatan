@@ -482,17 +482,17 @@ func postJawaban(users UserType, forums *Forum, data UserData, idPertanyaan int,
 }
 
 func cekJawaban(forums Forum) int {
-	count := 0
+	jumlahPertanyaanTanpaTanggapan := 0
 
 	for i := 0; i < forums.pertanyaanLen; i++ {
 		pertanyaan := forums.tabPertanyaan[i]
 
 		if pertanyaan.tanggapanLen == 0 {
-			count++
+			jumlahPertanyaanTanpaTanggapan ++
 		}
 	}
 
-	return count
+	return jumlahPertanyaanTanpaTanggapan 
 }
 
 
