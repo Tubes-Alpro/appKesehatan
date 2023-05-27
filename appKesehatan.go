@@ -600,7 +600,7 @@ func dokterMenu(users UserType, data UserData, forums Forum, session string) {
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Printf("Halo, %s (dokter)\n", users.Dokter[id].nama)
-		// fmt.Printf("Notifikasi: %d pertanyaan belum dijawab\n", )
+		fmt.Printf("Notifikasi: %d pertanyaan belum dijawab\n", cekJawaban(forums))
 		fmt.Println("1. Lihat Topik Populer")
 		fmt.Println("2. Lihat Forum")
 		fmt.Println("00. Keluar")
