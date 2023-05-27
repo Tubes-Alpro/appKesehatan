@@ -23,6 +23,7 @@ type UserType struct {
 type UserData struct {
 	isDokter bool
 	id       int
+	response bool
 }
 
 type Tanggapan struct {
@@ -49,13 +50,15 @@ type Forum struct {
 func mainMenu(users UserType, forums Forum) {
 	var opsi int
 	var session string
+
+	baseTags(&forums)
 	opsiMenu := func() {
 		fmt.Println("\n=== Aplikasi Konsultasi Kesehatan ===")
 		fmt.Println("1. Daftar")
 		fmt.Println("2. Masuk")
 		fmt.Println("3. Lihat Forum")
 		fmt.Println("00. Keluar")
-		fmt.Println("33. debug user")
+		// fmt.Println("33. debug user")
 	}
 
 	for {
@@ -68,10 +71,10 @@ func mainMenu(users UserType, forums Forum) {
 		} else if opsi == 2 {
 			userData := loginUser(users, forums)
 
-			if userData.isDokter {
+			if userData.isDokter && userData.response {
 				session = "dokter"
 				dokterMenu(users, userData, forums, session)
-			} else {
+			} else if userData.response {
 				session = "pasien"
 				pasienMenu(users, userData, forums, session)
 			}
@@ -82,11 +85,32 @@ func mainMenu(users UserType, forums Forum) {
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			os.Exit(0)
-		} else if opsi == 33 {
-			debugUser(users)
+			// } else if opsi == 33 {
+			// 	debugUser(users)
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
+	}
+}
+
+func addTags(forums *Forum) string {
+	var tag string
+	fmt.Print("Masukkan tag baru: ")
+	fmt.Scan(&tag)
+	tag = strings.ToLower(tag)
+
+	forums.tags[forums.tagsLen] = tag
+	forums.tagsLen++
+
+	return strings.ToLower(tag)
+}
+
+func baseTags(forums *Forum) {
+	const tagsLen int = 9
+	tags := [tagsLen]string{"diabetes", "flu", "insomnia", "jantung", "kanker", "mental", "pernapasan", "stroke", "virus"}
+	for i := 0; i < tagsLen; i++ {
+		forums.tags[i] = tags[i]
+		forums.tagsLen++
 	}
 }
 
@@ -118,7 +142,7 @@ func registerUser(users *UserType, forums Forum) {
 		fmt.Print("\nDaftar? (y/n): ")
 		fmt.Scan(&input)
 		if input == "n" {
-			mainMenu(*users, forums)
+			return
 		}
 	}
 
@@ -173,13 +197,15 @@ func loginUser(users UserType, forums Forum) UserData {
 		fmt.Print("\nLogin? (y/n): ")
 		fmt.Scan(&input)
 		if input == "n" {
-			mainMenu(users, forums)
+			result.response = false
+			found++
+		} else if input == "y" {
+			result.response = true
 		}
 	}
 
-	inputUser()
-
 	for found == 0 {
+		inputUser()
 		for i := 0; i < n && found == 0; i++ {
 			if (users.Dokter[i].username == username) && (users.Dokter[i].password == password) {
 				result.isDokter = true
@@ -195,7 +221,6 @@ func loginUser(users UserType, forums Forum) UserData {
 
 		if found == 0 {
 			fmt.Println("Username atau password tidak valid")
-			inputUser()
 		}
 	}
 
@@ -477,7 +502,7 @@ func postPertanyaan(users UserType, forums *Forum, data UserData) {
 	var tags string
 	var submit bool
 	var input string
-	const tagsLen int = 10
+	tagsLen := forums.tagsLen
 
 	reader := bufio.NewReader(os.Stdin)
 
@@ -491,18 +516,22 @@ func postPertanyaan(users UserType, forums *Forum, data UserData) {
 		for i := 0; i < tagsLen; i++ {
 			fmt.Printf("#%d: %s  |  ", i+1, tagsOpsi[i])
 		}
+		fmt.Printf("#%d: lainnya", tagsLen+1)
 		valid := false
 		var opsi int
 		for !valid {
-			fmt.Print("\nPilih tag (1-10): ")
+			fmt.Printf("\nPilih tag (1-%d): ", tagsLen+1)
 			fmt.Scanln(&opsi)
-			if opsi < 1 || opsi > tagsLen {
+			if opsi == tagsLen+1 {
+				tags = addTags(forums)
+				valid = true
+			} else if opsi < 1 || opsi > tagsLen {
 				fmt.Println("Pilihan tag tidak valid")
 			} else {
+				tags = tagsOpsi[opsi-1]
 				valid = true
 			}
 		}
-		tags = tagsOpsi[opsi-1]
 
 		fmt.Print("Submit pertanyaan? (y/n): ")
 		fmt.Scan(&input)
@@ -558,11 +587,11 @@ func cekJawaban(forums Forum) int {
 		pertanyaan := forums.tabPertanyaan[i]
 
 		if pertanyaan.tanggapanLen == 0 {
-			jumlahPertanyaanTanpaTanggapan ++
+			jumlahPertanyaanTanpaTanggapan++
 		}
 	}
 
-	return jumlahPertanyaanTanpaTanggapan 
+	return jumlahPertanyaanTanpaTanggapan
 }
 
 func pasienMenu(users UserType, data UserData, forums Forum, session string) {
@@ -759,21 +788,11 @@ func dummy(users *UserType, forums *Forum) {
 	forums.tabPertanyaan[1].tanggapanLen++
 }
 
-func addTags(forums *Forum) {
-	const tagsLen int = 10
-
-	tags := [tagsLen]string{"diabetes", "flu", "insomnia", "jantung", "kanker", "mental", "pernapasan", "stroke", "virus", "lainnya"}
-
-	for i := 0; i < tagsLen; i++ {
-		forums.tags[i] = tags[i]
-	}
-}
-
 func main() {
 	var users UserType
 	var forums Forum
 
 	dummy(&users, &forums)
-	addTags(&forums)
+
 	mainMenu(users, forums)
 }
