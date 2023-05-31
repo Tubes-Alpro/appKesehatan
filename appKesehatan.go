@@ -446,6 +446,25 @@ func filterTag(users UserType, data UserData, forums Forum, session string) {
 	}
 }
 
+func insertionSortTags(tags *[NMAX]string, tagCounts *[NMAX]int, n int) {
+	var tempCount, i, j int
+	var tempTag string
+	i = 1
+	for i < n {
+		tempCount = tagCounts[i]
+		tempTag = tags[i]
+		j = i - 1
+		for j >= 0 && tagCounts[j] < tempCount {
+			tagCounts[j+1] = tagCounts[j]
+			tags[j+1] = tags[j]
+			j--
+		}
+		tagCounts[j+1] = tempCount
+		tags[j+1] = tempTag
+		i++
+	}
+}
+
 func lihatTagAtas(users UserType, forums *Forum, data UserData, session string) {
 	var tags [NMAX]string
 	var tagCounts [NMAX]int
@@ -458,7 +477,7 @@ func lihatTagAtas(users UserType, forums *Forum, data UserData, session string) 
 		if tag != "" {
 			found := false
 			j := 0
-			for j < tagsLen { // ganti insertion sort
+			for j < tagsLen {
 				if tags[j] == tag {
 					tagCounts[j]++
 					found = true
@@ -472,6 +491,8 @@ func lihatTagAtas(users UserType, forums *Forum, data UserData, session string) 
 			}
 		}
 	}
+
+	insertionSortTags(&tags, &tagCounts, tagsLen)
 
 	fmt.Println("\n=== Tag Populer ===")
 	fmt.Println("Tag\t\tJumlah Pertanyaan")
@@ -722,7 +743,7 @@ func dummy(users *UserType, forums *Forum) {
 			isDokter: false,
 		},
 		id:     0,
-		tag:    "flu",
+		tag:    "jantung",
 		konten: "Berapa lama indra penciuman hilang saat mengalami flu?",
 	}
 	forums.pertanyaanLen++
@@ -777,7 +798,7 @@ func dummy(users *UserType, forums *Forum) {
 			isDokter: false,
 		},
 		id:     5,
-		tag:    "jantung",
+		tag:    "flu",
 		konten: "What are some ways to prevent heart disease?",
 	}
 	forums.pertanyaanLen++
