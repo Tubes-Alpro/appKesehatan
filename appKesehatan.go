@@ -390,7 +390,7 @@ func filterTag(users UserType, data UserData, forums Forum, session string) {
 		fmt.Println("\n=== Hasil Pencarian ===")
 		found := false
 
-		// Mengurutkan tabPertanyaan berdasarkan tag menggunakan bubble sort
+		// Mengurutkan tabPertanyaan berdasarkan tag 
 		for i := 0; i < forums.pertanyaanLen-1; i++ {
 			for j := 0; j < forums.pertanyaanLen-i-1; j++ {
 				if forums.tabPertanyaan[j].tag > forums.tabPertanyaan[j+1].tag {
