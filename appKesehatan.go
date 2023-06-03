@@ -358,6 +358,26 @@ func filterPertanyaan(users UserType, data UserData, forums Forum, session strin
 	}
 }
 
+
+func binarySearch(arr []Pertanyaan, target string) int {
+	awal := 0
+	akhir := len(arr) - 1
+
+	for awal <= akhir {
+		tengah := (awal + akhir) / 2
+		if arr[tengah].tag == target {
+			return tengah
+		} else if arr[tengah].tag < target {
+			awal = tengah + 1
+		} else {
+			akhir = tengah - 1
+		}
+	}
+
+	return -1
+}
+
+
 func filterTag(users UserType, data UserData, forums Forum, session string) {
 	var tag string
 	var opsi int
@@ -370,25 +390,38 @@ func filterTag(users UserType, data UserData, forums Forum, session string) {
 		fmt.Println("\n=== Hasil Pencarian ===")
 		found := false
 
-		// revisi: urutkan tabPertanyaan berdasarkan tag, lalu gunakan binary search
-		for j := 0; j < forums.pertanyaanLen; j++ {
-			pertanyaan := forums.tabPertanyaan[j]
-			if pertanyaan.tag == tag {
-				if !found {
-					found = true
+		// Mengurutkan tabPertanyaan berdasarkan tag menggunakan bubble sort
+		for i := 0; i < forums.pertanyaanLen-1; i++ {
+			for j := 0; j < forums.pertanyaanLen-i-1; j++ {
+				if forums.tabPertanyaan[j].tag > forums.tabPertanyaan[j+1].tag {
+					forums.tabPertanyaan[j], forums.tabPertanyaan[j+1] = forums.tabPertanyaan[j+1], forums.tabPertanyaan[j]
 				}
-				author := pertanyaan.author.id
-				fmt.Printf("\nID: %d\t", pertanyaan.id)
-				fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
-				fmt.Printf("Tag: %s\n", pertanyaan.tag)
-				fmt.Printf("Pertanyaan: %s\n", pertanyaan.konten)
-				fmt.Printf("Tanggapan: %d\n", pertanyaan.tanggapanLen)
-				for k := 0; k < pertanyaan.tanggapanLen; k++ {
-					tanggapan := pertanyaan.tabTanggapan[k]
-					if tanggapan.author.isDokter {
-						fmt.Printf("- %s (dokter): %s\n", users.Dokter[tanggapan.author.id].nama, tanggapan.konten)
-					} else {
-						fmt.Printf("- %s (pasien): %s\n", users.Pasien[tanggapan.author.id].nama, tanggapan.konten)
+			}
+		}
+
+		// Mencari indeks pertama dengan tag yang sesuai menggunakan binary search
+		index := binarySearch(forums.tabPertanyaan[:forums.pertanyaanLen], tag)
+
+		if index != -1 {
+			for i := index; i < forums.pertanyaanLen; i++ {
+				pertanyaan := forums.tabPertanyaan[i]
+				if pertanyaan.tag == tag {
+					if !found {
+						found = true
+					}
+					author := pertanyaan.author.id
+					fmt.Printf("\nID: %d\t", pertanyaan.id)
+					fmt.Printf("Oleh: %s\t", users.Pasien[author].nama)
+					fmt.Printf("Tag: %s\n", pertanyaan.tag)
+					fmt.Printf("Pertanyaan: %s\n", pertanyaan.konten)
+					fmt.Printf("Tanggapan: %d\n", pertanyaan.tanggapanLen)
+					for k := 0; k < pertanyaan.tanggapanLen; k++ {
+						tanggapan := pertanyaan.tabTanggapan[k]
+						if tanggapan.author.isDokter {
+							fmt.Printf("- %s (dokter): %s\n", users.Dokter[tanggapan.author.id].nama, tanggapan.konten)
+						} else {
+							fmt.Printf("- %s (pasien): %s\n", users.Pasien[tanggapan.author.id].nama, tanggapan.konten)
+						}
 					}
 				}
 			}
