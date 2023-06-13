@@ -58,7 +58,6 @@ func mainMenu(users *UserType, forums *Forum) {
 		fmt.Println("2. Masuk")
 		fmt.Println("3. Lihat Forum")
 		fmt.Println("00. Keluar")
-		fmt.Println("33. debug user")
 	}
 
 	for {
@@ -85,8 +84,6 @@ func mainMenu(users *UserType, forums *Forum) {
 		} else if opsi == 00 {
 			fmt.Println("Terima kasih! Sampai jumpa lagi :)")
 			os.Exit(0)
-		} else if opsi == 33 {
-			debugUser(*users)
 		} else {
 			fmt.Println("Pilihan tidak valid.")
 		}
@@ -230,8 +227,13 @@ func loginUser(users UserType, forums *Forum) UserData {
 func lihatForum(users UserType, data UserData, forums *Forum, session string) {
 	var opsi int
 	var id int
+
 	forumList := func() {
 		fmt.Println("\n=== Forum Konsultasi ===")
+
+		if forums.pertanyaanLen == 0 {
+			fmt.Println("Belum ada pertanyaan")
+		}
 
 		for j := 0; j < forums.pertanyaanLen; j++ {
 			pertanyaan := forums.tabPertanyaan[j]
@@ -255,60 +257,111 @@ func lihatForum(users UserType, data UserData, forums *Forum, session string) {
 		fmt.Println("\n=== Menu ===")
 	}
 
+	menuEmpty := func() int {
+		if session == "pasien" {
+			fmt.Println("1. Ajukan Pertanyaan")
+		}
+		fmt.Println("0. Kembali")
+		fmt.Print("\nPilihan Anda: ")
+		fmt.Scanln(&opsi)
+
+		if opsi == 0 {
+			return opsi
+		} else if opsi == 1 && session == "pasien" {
+			postPertanyaan(users, forums, data)
+		} else {
+			fmt.Println("Pilihan tidak valid.")
+		}
+		return 0
+	}
+
 	forumList()
 
 	if session == "guest" {
 		for {
-			fmt.Println("0. Kembali")
-			fmt.Print("\nPilihan Anda: ")
-			fmt.Scanln(&opsi)
-
-			if opsi == 0 {
-				return
+			if forums.pertanyaanLen == 0 {
+				res := menuEmpty()
+				if res == 0 {
+					return
+				}
 			} else {
-				fmt.Println("Pilihan tidak valid.")
+				fmt.Println("1. Cari Pertanyaan sesuai Tag")
+				fmt.Println("0. Kembali")
+				fmt.Print("\nPilihan Anda: ")
+				fmt.Scanln(&opsi)
+
+				if opsi == 1 {
+					filterTag(users, data, forums, session)
+					forumList()
+				} else if opsi == 0 {
+					return
+				} else {
+					fmt.Println("Pilihan tidak valid.")
+				}
 			}
 		}
 	} else if session == "pasien" {
 		for {
-			fmt.Println("1. Ajukan Pertanyaan")
-			fmt.Println("2. Jawab Pertanyaan")
-			fmt.Println("0. Kembali")
-
-			fmt.Print("\nPilihan Anda: ")
-			fmt.Scanln(&opsi)
-
-			if opsi == 1 {
-				postPertanyaan(users, forums, data)
-				forumList()
-			} else if opsi == 2 {
-				fmt.Print("Masukkan ID Pertanyaan: ")
-				fmt.Scanln(&id)
-				postJawaban(users, forums, data, id, session)
-				forumList()
-			} else if opsi == 0 {
-				return
+			if forums.pertanyaanLen == 0 {
+				res := menuEmpty()
+				if res == 0 {
+					return
+				}
 			} else {
-				fmt.Println("Pilihan tidak valid.")
+				fmt.Println("1. Ajukan Pertanyaan")
+				fmt.Println("2. Jawab Pertanyaan")
+				fmt.Println("3. Cari Pertanyaan sesuai Tag")
+				fmt.Println("0. Kembali")
+
+				fmt.Print("\nPilihan Anda: ")
+				fmt.Scanln(&opsi)
+
+				if opsi == 1 {
+					postPertanyaan(users, forums, data)
+					forumList()
+				} else if opsi == 2 {
+					fmt.Print("Masukkan ID Pertanyaan: ")
+					fmt.Scanln(&id)
+					postJawaban(users, forums, data, id, session)
+					forumList()
+				} else if opsi == 3 {
+					filterTag(users, data, forums, session)
+					forumList()
+				} else if opsi == 0 {
+					return
+				} else {
+					fmt.Println("Pilihan tidak valid.")
+				}
 			}
 		}
 	} else if session == "dokter" {
 		for {
-			fmt.Println("1. Jawab Pertanyaan")
-			fmt.Println("0. Kembali")
-
-			fmt.Print("\nPilihan Anda: ")
-			fmt.Scanln(&opsi)
-
-			if opsi == 1 {
-				fmt.Print("Masukkan ID Pertanyaan: ")
-				fmt.Scanln(&id)
-				postJawaban(users, forums, data, id, session)
-				forumList()
-			} else if opsi == 0 {
-				return
+			if forums.pertanyaanLen == 0 {
+				res := menuEmpty()
+				if res == 0 {
+					return
+				}
 			} else {
-				fmt.Println("Pilihan tidak valid.")
+				fmt.Println("1. Jawab Pertanyaan")
+				fmt.Println("2. Cari Pertanyaan sesuai Tag")
+				fmt.Println("0. Kembali")
+
+				fmt.Print("\nPilihan Anda: ")
+				fmt.Scanln(&opsi)
+
+				if opsi == 1 {
+					fmt.Print("Masukkan ID Pertanyaan: ")
+					fmt.Scanln(&id)
+					postJawaban(users, forums, data, id, session)
+					forumList()
+				} else if opsi == 2 {
+					filterTag(users, data, forums, session)
+					forumList()
+				} else if opsi == 0 {
+					return
+				} else {
+					fmt.Println("Pilihan tidak valid.")
+				}
 			}
 		}
 	}
@@ -438,6 +491,7 @@ func filterTag(users UserType, data UserData, forums *Forum, session string) {
 
 		if !found {
 			fmt.Println("Tidak ditemukan pertanyaan dengan tag tersebut.")
+			fmt.Println("\n=== Menu ===")
 		}
 
 		return index
@@ -447,10 +501,29 @@ func filterTag(users UserType, data UserData, forums *Forum, session string) {
 	for index == -1 {
 		fmt.Print("\nMasukkan tag yang ingin dicari: ")
 		fmt.Scanln(&tag)
-		index = filter()
+		if forums.pertanyaanLen == 0 {
+			index = 0
+			fmt.Println("Tidak ditemukan pertanyaan dengan tag tersebut.")
+			fmt.Println("\n=== Menu ===")
+		} else {
+			index = filter()
+		}
 	}
 
-	if session == "pasien" {
+	if session == "guest" {
+		for {
+			fmt.Println("0. Kembali")
+
+			fmt.Print("\nPilihan Anda: ")
+			fmt.Scanln(&opsi)
+
+			if opsi == 0 {
+				return
+			} else {
+				fmt.Println("Pilihan tidak valid.")
+			}
+		}
+	} else if session == "pasien" {
 		for {
 			fmt.Println("1. Ajukan Pertanyaan")
 			fmt.Println("2. Jawab Pertanyaan")
@@ -558,7 +631,12 @@ func lihatTagAtas(users UserType, forums *Forum, data UserData, session string) 
 		}
 	}
 
-	sort()
+	if forums.pertanyaanLen == 0 {
+		fmt.Println("Belum ada tag")
+		fmt.Println("\n=== Menu ===")
+	} else {
+		sort()
+	}
 
 	for {
 		var opsi int
@@ -751,141 +829,9 @@ func dokterMenu(users UserType, data UserData, forums *Forum, session string) {
 	}
 }
 
-func debugUser(users UserType) {
-	fmt.Printf("\nDokter list (%d)\n", users.dokterLen)
-	for i := 0; i < users.dokterLen; i++ {
-		fmt.Printf("- Nama: %s \tUsername: %s \tPass: %s\n", users.Dokter[i].nama, users.Dokter[i].username, users.Dokter[i].password)
-	}
-
-	fmt.Printf("Pasien list (%d)\n", users.pasienLen)
-	for j := 0; j < users.pasienLen; j++ {
-		fmt.Printf("- Nama: %s \tUsername: %s \tPass: %s\n", users.Pasien[j].nama, users.Pasien[j].username, users.Pasien[j].password)
-	}
-}
-
-func dummy(users *UserType, forums *Forum) {
-	users.Pasien[0] = User{
-		id:       0,
-		nama:     "Jon",
-		username: "jon123",
-		password: "123",
-	}
-	users.pasienLen++
-
-	users.Pasien[1] = User{
-		id:       1,
-		nama:     "Stefi",
-		username: "stef1",
-		password: "123",
-	}
-	users.pasienLen++
-
-	users.Pasien[2] = User{
-		id:       2,
-		nama:     "Red",
-		username: "redcode",
-		password: "123",
-	}
-	users.pasienLen++
-
-	users.Dokter[0] = User{
-		id:       0,
-		nama:     "Bob",
-		username: "bob123",
-		password: "123",
-	}
-	users.dokterLen++
-
-	forums.tabPertanyaan[0] = Pertanyaan{
-		author: UserData{
-			id:       0,
-			isDokter: false,
-		},
-		id:     0,
-		tag:    "jantung",
-		konten: "Berapa lama indra penciuman hilang saat mengalami flu?",
-	}
-	forums.pertanyaanLen++
-
-	forums.tabPertanyaan[1] = Pertanyaan{
-		author: UserData{
-			id:       1,
-			isDokter: false,
-		},
-		id:     1,
-		tag:    "kanker",
-		konten: "What are the treatment options for lung cancer?",
-	}
-	forums.pertanyaanLen++
-
-	forums.tabPertanyaan[2] = Pertanyaan{
-		author: UserData{
-			id:       0,
-			isDokter: false,
-		},
-		id:     2,
-		tag:    "flu",
-		konten: "How can I manage my blood sugar levels effectively?",
-	}
-	forums.pertanyaanLen++
-
-	forums.tabPertanyaan[3] = Pertanyaan{
-		author: UserData{
-			id:       1,
-			isDokter: false,
-		},
-		id:     3,
-		tag:    "diabetes",
-		konten: "What are some common symptoms of diabetes?",
-	}
-	forums.pertanyaanLen++
-
-	forums.tabPertanyaan[4] = Pertanyaan{
-		author: UserData{
-			id:       1,
-			isDokter: false,
-		},
-		id:     4,
-		tag:    "kanker",
-		konten: "Are there any alternative treatments for cancer?",
-	}
-	forums.pertanyaanLen++
-
-	forums.tabPertanyaan[5] = Pertanyaan{
-		author: UserData{
-			id:       1,
-			isDokter: false,
-		},
-		id:     5,
-		tag:    "flu",
-		konten: "What are some ways to prevent heart disease?",
-	}
-	forums.pertanyaanLen++
-
-	forums.tabPertanyaan[0].tabTanggapan[0] = Tanggapan{
-		author: UserData{
-			id:       1,
-			isDokter: false,
-		},
-		konten: "You're welcome! If you have any more questions, feel free to ask.",
-	}
-	forums.tabPertanyaan[0].tanggapanLen++
-
-	forums.tabPertanyaan[1].tabTanggapan[0] = Tanggapan{
-		author: UserData{
-			id:       0,
-			isDokter: true,
-		},
-		konten: "Thank you for your question. The treatment options for lung cancer include surgery, chemotherapy, radiation therapy, targeted therapy, and immunotherapy.",
-	}
-	forums.tabPertanyaan[1].tanggapanLen++
-}
-
 func main() {
 	var users UserType
 	var forums Forum
-
-	// dummy(&users, &forums)
 
 	mainMenu(&users, &forums)
 }
